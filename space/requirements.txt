@@ -1,0 +1,9 @@
+huggingface_hub<1.0
+torch>=2.1.0
+transformers>=4.40.0,<5.0
+peft>=0.10.0
+accelerate>=0.30.0
+sentencepiece>=0.2.0
+protobuf>=4.25.0
+gradio>=4.26.0
+audioop-lts; python_version>="3.13"
