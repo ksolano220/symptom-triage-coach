@@ -15,7 +15,9 @@ env/
 hf_token.txt
 
 data/raw/
-data/processed/
+data/processed/*
+!data/processed/train.jsonl
+!data/processed/val.jsonl
 *.parquet
 *.arrow
 
