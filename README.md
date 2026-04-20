@@ -4,6 +4,10 @@ A LoRA fine-tune of **Qwen2.5-1.5B-Instruct** that helps patients prepare for a 
 
 This is not a diagnostic tool. It is a pre-visit prep assistant that helps patients walk into their appointment informed, not alone.
 
+**Live demo:** [huggingface.co/spaces/ksolano220/symptom-triage-coach](https://huggingface.co/spaces/ksolano220/symptom-triage-coach)
+
+![Symptom Triage Coach demo](outputs/demo.png)
+
 ### What It Does
 
 Input: a patient's plain-language symptom description
