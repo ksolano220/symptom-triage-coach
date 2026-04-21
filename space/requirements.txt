@@ -6,4 +6,5 @@ accelerate>=0.30.0
 sentencepiece>=0.2.0
 protobuf>=4.25.0
 gradio>=4.26.0
+deep-translator>=1.11.4
 audioop-lts; python_version>="3.13"

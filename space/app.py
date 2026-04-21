@@ -3,6 +3,10 @@
 Self-contained Gradio app. Loads Qwen2.5-1.5B-Instruct + the LoRA adapter
 from the Hub, generates schema-valid JSON from a patient's symptom
 description, and renders it as formatted markdown.
+
+Supports Spanish-language input: when the user selects Español, the
+symptom description is translated to English before being sent to the
+model. The model itself is English-only, so output stays in English.
 """
 
 import json
@@ -11,6 +15,11 @@ import gradio as gr
 import torch
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+try:
+    from deep_translator import GoogleTranslator
+except ImportError:  # pragma: no cover
+    GoogleTranslator = None
 
 BASE_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
 ADAPTER_ID = "ksolano220/symptom-triage-coach"
@@ -140,11 +149,26 @@ def format_markdown(data: dict) -> str:
     return "\n".join(parts)
 
 
-def summarize(text: str):
+def translate_to_english(text: str) -> str:
+    """Translate Spanish input to English. Falls back to the raw input on failure."""
+    if GoogleTranslator is None:
+        return text
+    try:
+        translated = GoogleTranslator(source="auto", target="en").translate(text)
+        return translated if translated else text
+    except Exception:
+        return text
+
+
+def summarize(text: str, language: str):
     text = (text or "").strip()
     if not text:
         return "", ""
-    data = generate_json(text)
+    if language == "Español":
+        text_en = translate_to_english(text)
+    else:
+        text_en = text
+    data = generate_json(text_en)
     if data is None:
         return "_Model output was not valid JSON. Try rephrasing the symptom._", ""
     markdown = format_markdown(data)
@@ -152,15 +176,42 @@ def summarize(text: str):
     return markdown, raw
 
 
-with gr.Blocks(title="Symptom Triage Coach") as demo:
+CUSTOM_CSS = """
+#symptom-input textarea {
+    font-size: 18px !important;
+    line-height: 1.55 !important;
+    padding: 14px !important;
+}
+"""
+
+
+def _update_input_ui(language: str):
+    if language == "Español":
+        return gr.update(
+            label="Describa su síntoma",
+            placeholder="ej. Tengo dolor en el pecho al respirar profundamente",
+        )
+    return gr.update(
+        label="Describe your symptom",
+        placeholder="e.g. I have chest pain when I breathe deeply",
+    )
+
+
+with gr.Blocks(title="Symptom Triage Coach", css=CUSTOM_CSS) as demo:
     gr.Markdown(DESCRIPTION)
 
     with gr.Row():
         with gr.Column():
+            language = gr.Radio(
+                choices=["English", "Español"],
+                value="English",
+                label="Input language",
+            )
             source = gr.Textbox(
                 label="Describe your symptom",
                 lines=4,
                 placeholder="e.g. I have chest pain when I breathe deeply",
+                elem_id="symptom-input",
             )
             run_btn = gr.Button("Prep for doctor visit", variant="primary")
         with gr.Column():
@@ -170,7 +221,8 @@ with gr.Blocks(title="Symptom Triage Coach") as demo:
         output_raw = gr.Code(language="json", label=None)
 
     gr.Examples(examples=EXAMPLES, inputs=source)
-    run_btn.click(summarize, inputs=source, outputs=[output_md, output_raw])
+    language.change(_update_input_ui, inputs=language, outputs=source)
+    run_btn.click(summarize, inputs=[source, language], outputs=[output_md, output_raw])
 
 
 if __name__ == "__main__":
