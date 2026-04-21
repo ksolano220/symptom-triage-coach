@@ -177,10 +177,46 @@ def summarize(text: str, language: str):
 
 
 CUSTOM_CSS = """
-#symptom-input textarea {
-    font-size: 18px !important;
-    line-height: 1.55 !important;
-    padding: 14px !important;
+#symptom-input textarea,
+#symptom-input input,
+#symptom-input .scroll-hide,
+.gradio-container textarea,
+.gradio-container .input-textarea textarea {
+    font-size: 20px !important;
+    line-height: 1.6 !important;
+    padding: 16px !important;
+}
+#symptom-input label,
+#symptom-input .label-wrap {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+/* Language toggle styled as prominent pill switch */
+#language-toggle {
+    margin-top: 8px !important;
+    padding: 12px 14px !important;
+    background: #f5f7fb !important;
+    border: 1px solid #e3e6ef !important;
+    border-radius: 10px !important;
+}
+#language-toggle .label-wrap,
+#language-toggle > label,
+#language-toggle span[data-testid="block-label"] {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+}
+#language-toggle label {
+    font-size: 15px !important;
+    padding: 6px 14px !important;
+    border-radius: 999px !important;
+    cursor: pointer !important;
+}
+#language-toggle input[type="radio"]:checked + span,
+#language-toggle label:has(input:checked) {
+    background: #121631 !important;
+    color: #ffffff !important;
 }
 """
 
@@ -202,16 +238,17 @@ with gr.Blocks(title="Symptom Triage Coach", css=CUSTOM_CSS) as demo:
 
     with gr.Row():
         with gr.Column():
-            language = gr.Radio(
-                choices=["English", "Español"],
-                value="English",
-                label="Input language",
-            )
             source = gr.Textbox(
                 label="Describe your symptom",
                 lines=4,
                 placeholder="e.g. I have chest pain when I breathe deeply",
                 elem_id="symptom-input",
+            )
+            language = gr.Radio(
+                choices=["English", "Español"],
+                value="English",
+                label="Type in your language / Escribe en tu idioma",
+                elem_id="language-toggle",
             )
             run_btn = gr.Button("Prep for doctor visit", variant="primary")
         with gr.Column():
