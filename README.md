@@ -41,7 +41,7 @@ Output: a schema-valid JSON object with four fields
 | Base model | Qwen2.5-1.5B-Instruct (4-bit quantized) | Strong structured-output ability at a size that runs on free-tier CPU |
 | Fine-tuning | LoRA (r=16, alpha=32) | ~18MB adapter, trains in ~15 min on T4 |
 | Training data | ~500 synthetic (symptom, JSON) pairs generated via GPT-4o-mini teacher, every pair validated against JSON schema | Exactly-shaped training data, no task-mismatch surprises |
-| Schema validation | jsonschema at generation time + inference time | Hallucination containment — invalid outputs are rejected |
+| Schema validation | jsonschema at generation time + inference time | Hallucination containment. Invalid outputs are rejected |
 | Deployment | Hugging Face Spaces (Gradio, free CPU tier) | Free clickable demo |
 
 ### Data
