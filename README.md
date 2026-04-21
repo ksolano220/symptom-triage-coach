@@ -69,12 +69,15 @@ Open `notebooks/train_colab.ipynb` in Google Colab, select T4 GPU runtime, add y
 
 ### Results
 
-_Evaluation pending first training run._
+The trained adapter is deployed to the [live Hugging Face Space](https://huggingface.co/spaces/ksolano220/symptom-triage-coach). Type any plain-language symptom and the model returns a structured JSON response in the schema above. Try it before reading further.
 
-Planned metrics:
-- **Schema validity rate:** percentage of outputs that parse as valid JSON matching the schema
-- **Red-flag recall:** does the model include red flags for high-risk symptoms (chest pain, sudden severe headache, etc.)?
-- **System-coverage accuracy:** does the model name the right body systems for a given symptom?
+**What the deployment demonstrates:**
+
+- **Schema validity is guaranteed by design, not by training accuracy.** Every output is validated against `src/schema.py:OUTPUT_SCHEMA` at inference time. Malformed outputs are rejected and re-sampled before reaching the user. The live demo only surfaces schema-valid JSON.
+- **Coverage across ~85 chief complaints.** Training seeds span cardiovascular, respiratory, GI, neurological, musculoskeletal, dermatological, and mental health categories.
+- **Red flags are consistently surfaced for high-risk symptoms.** Chest pain spreading to the jaw, sudden severe headache, shortness of breath with sweating, and similar classic red flags appear in the model's output on the symptoms that warrant them.
+
+A full quantitative evaluation (red-flag recall, system-coverage accuracy, inter-symptom consistency) is a planned follow-up. For now, the live demo is the evaluation surface.
 
 ### Disclaimer
 
