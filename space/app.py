@@ -12,14 +12,19 @@ model. The model itself is English-only, so output stays in English.
 import json
 
 import gradio as gr
+import jsonschema
 import torch
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+from schema import OUTPUT_SCHEMA
 
 try:
     from deep_translator import GoogleTranslator
 except ImportError:  # pragma: no cover
     GoogleTranslator = None
+
+MAX_GENERATION_ATTEMPTS = 3
 
 BASE_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
 ADAPTER_ID = "ksolano220/symptom-triage-coach"
@@ -89,6 +94,14 @@ print("Model ready.")
 
 
 def generate_json(text: str) -> dict | None:
+    """Generate a schema-valid response with up to MAX_GENERATION_ATTEMPTS retries.
+
+    Attempt 1 is greedy. If the output is not valid JSON or fails schema
+    validation, subsequent attempts switch to sampling with slightly higher
+    temperature to produce a different completion. Returns the first
+    response that parses and passes jsonschema.validate, or None if every
+    attempt fails.
+    """
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": text},
@@ -97,21 +110,39 @@ def generate_json(text: str) -> dict | None:
         messages, tokenize=False, add_generation_prompt=True
     )
     inputs = tokenizer(prompt, return_tensors="pt")
-    with torch.no_grad():
-        out = model.generate(
-            **inputs,
-            max_new_tokens=600,
-            do_sample=False,
-            repetition_penalty=1.1,
-            pad_token_id=tokenizer.eos_token_id,
-        )
-    raw = tokenizer.decode(
-        out[0][inputs.input_ids.shape[1]:], skip_special_tokens=True
-    ).strip()
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return None
+
+    for attempt in range(MAX_GENERATION_ATTEMPTS):
+        gen_kwargs = {
+            "max_new_tokens": 600,
+            "repetition_penalty": 1.1,
+            "pad_token_id": tokenizer.eos_token_id,
+        }
+        if attempt == 0:
+            gen_kwargs["do_sample"] = False
+        else:
+            gen_kwargs["do_sample"] = True
+            gen_kwargs["temperature"] = 0.4 + (attempt - 1) * 0.15
+            gen_kwargs["top_p"] = 0.9
+
+        with torch.no_grad():
+            out = model.generate(**inputs, **gen_kwargs)
+        raw = tokenizer.decode(
+            out[0][inputs.input_ids.shape[1]:], skip_special_tokens=True
+        ).strip()
+
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+
+        try:
+            jsonschema.validate(data, OUTPUT_SCHEMA)
+        except jsonschema.ValidationError:
+            continue
+
+        return data
+
+    return None
 
 
 def format_markdown(data: dict) -> str:
