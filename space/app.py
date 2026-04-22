@@ -161,12 +161,12 @@ def format_markdown(data: dict) -> str:
             name = c.get("name", "")
             likelihood = LIKELIHOOD_BADGE.get(c.get("likelihood", ""), c.get("likelihood", ""))
             desc = c.get("description", "")
-            parts.append(f"- **{name}** _(likelihood: {likelihood})_ — {desc}")
+            parts.append(f"- **{name}** _(likelihood: {likelihood})_. {desc}")
         parts.append("")
 
     red_flags = data.get("red_flags", [])
     if red_flags:
-        parts.append("### Red flags — seek immediate care if you notice")
+        parts.append("### Red flags. Seek immediate care if you notice")
         for flag in red_flags:
             parts.append(f"- {flag}")
         parts.append("")
