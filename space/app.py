@@ -75,7 +75,7 @@ LIKELIHOOD_BADGE = {
     "common": "common",
     "less_common": "less common",
     "rare": "rare",
-    "serious": "serious ⚠",
+    "serious": "serious",
 }
 
 print("Loading base model and adapter (this takes ~60s)...")
