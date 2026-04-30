@@ -1,5 +1,7 @@
 ## Symptom Triage Coach
 
+> **v2 (multi-modal):** image + symptom text in, image-grounded triage out. Live at [`symptom-triage-coach-v2`](https://github.com/ksolano220/symptom-triage-coach-v2).
+
 A LoRA fine-tune of **Qwen2.5-1.5B-Instruct** that helps patients prepare for a doctor's visit. Given a plain-language symptom description, the model returns a structured JSON response: body systems that might be involved, possible causes ranked by likelihood, red flags that warrant immediate care, and questions the doctor is likely to ask.
 
 This is not a diagnostic tool. It is a pre-visit prep assistant that helps patients walk into their appointment informed, not alone.
